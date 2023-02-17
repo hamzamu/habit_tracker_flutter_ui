@@ -3,7 +3,11 @@ import 'package:habit_tracker_ui_hive/comp/HabitTile.dart';
 import 'package:habit_tracker_ui_hive/comp/fab.dart';
 import 'package:habit_tracker_ui_hive/comp/newHabitInput.dart';
 
-void main() {
+import 'package:hive_flutter/hive_flutter.dart';
+
+Future<void> main() async {
+  await Hive.initFlutter();
+  await Hive.openBox('Habits_Database');
   runApp(const MyApp());
 }
 
@@ -56,6 +60,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void onSave(habit) {
     setState(() {
+      if (_newHabitcontroller.text.isEmpty) {
+        return;
+      }
       HabitsList.add([_newHabitcontroller.text, false]);
       _newHabitcontroller.clear();
       Navigator.of(context).pop();
@@ -82,13 +89,33 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
         backgroundColor: Colors.grey[200],
         floatingActionButton: FloatingButtonAdd(onPressed: createNewHabit),
-        body: ListView.builder(
-            itemCount: HabitsList.length,
-            itemBuilder: (context, index) {
-              return HabitTile(
-                  text: HabitsList[index][0],
-                  habitCompleted: HabitsList[index][1],
-                  onChanged: (value) => CheckboxTabbed(value, index));
-            }));
+        body: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                  itemCount: HabitsList.length,
+                  itemBuilder: (context, index) {
+                    return HabitTile(
+                        text: HabitsList[index][0],
+                        habitCompleted: HabitsList[index][1],
+                        onChanged: (value) => CheckboxTabbed(value, index));
+                  }),
+            ),
+            // Container(
+            //   height: 100,
+            //   margin: EdgeInsets.all(0),
+            //   padding: EdgeInsets.all(15),
+            //   decoration: BoxDecoration(
+            //       color: Colors.amber, borderRadius: BorderRadius.circular(20)),
+            //   child: TextField(
+            //     decoration: InputDecoration(
+            //         border: InputBorder.none,
+            //         hintText: 'Add New Habit',
+            //         hintStyle: TextStyle(fontSize: 12)),
+            //   ),
+            // )
+          ],
+          // height: 300,
+        ));
   }
 }
