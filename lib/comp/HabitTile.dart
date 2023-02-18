@@ -4,10 +4,14 @@ class HabitTile extends StatelessWidget {
   String text;
   bool habitCompleted;
   final Function(bool?)? onChanged;
+  // VoidCallbackIntent onRemove;
+  final Function()? onRemove;
+
   HabitTile(
       {super.key,
       required this.text,
       required this.habitCompleted,
+      required this.onRemove,
       required this.onChanged});
 
   @override
@@ -22,7 +26,17 @@ class HabitTile extends StatelessWidget {
       child: Row(
         children: [
           Checkbox(value: habitCompleted, onChanged: onChanged),
-          Text(text)
+          Expanded(
+              child: Text(text,
+                  style: TextStyle(
+                      decoration:
+                          habitCompleted ? TextDecoration.lineThrough : null))),
+          IconButton(
+              onPressed: onRemove,
+              icon: Icon(
+                Icons.delete,
+                color: Colors.black38,
+              ))
         ],
       ),
     );

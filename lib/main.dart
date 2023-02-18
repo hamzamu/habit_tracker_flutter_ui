@@ -5,6 +5,8 @@ import 'package:habit_tracker_ui_hive/comp/newHabitInput.dart';
 
 import 'package:hive_flutter/hive_flutter.dart';
 
+import './data//habits_database.dart';
+
 Future<void> main() async {
   await Hive.initFlutter();
   await Hive.openBox('Habits_Database');
@@ -38,18 +40,36 @@ class _HomeScreenState extends State<HomeScreen> {
   bool habitCompleted = false;
   final _newHabitcontroller = TextEditingController();
 
+  HabitsDatabase db = HabitsDatabase();
+  final _myBox = Hive.box('Habits_Database');
   // List
-  late List HabitsList = [
-    ["Morning Pray", false],
-    ["Medevel Articles", false],
-    ["Flutter App", false],
-  ];
+  // late List HabitsList = [
+  //   ["Morning Pray", false],
+  //   ["Medevel Articles", false],
+  //   ["Flutter App", false],
+  // ];
   //
+
+  @override
+  void initState() {
+    if (_myBox.get("CURRENT_HABIT_LIST") == null) {
+      db.createInitData();
+      print("Database is empty");
+    } else {
+      print("DB is Not Empty");
+      db.loadData();
+    }
+    super.initState();
+  }
+
+  //
+
   void CheckboxTabbed(bool? value, int index) {
     print('CheckboxTabbed: Habit Controller:: $value');
     setState(() {
       // habitCompleted = value!;
-      HabitsList[index][1] = !HabitsList[index][1];
+      db.HabitsList[index][1] = !db.HabitsList[index][1];
+      db.updateHabitData();
     });
   }
 
@@ -63,8 +83,10 @@ class _HomeScreenState extends State<HomeScreen> {
       if (_newHabitcontroller.text.isEmpty) {
         return;
       }
-      HabitsList.add([_newHabitcontroller.text, false]);
+      db.HabitsList.add([_newHabitcontroller.text, false]);
       _newHabitcontroller.clear();
+      // Update
+      db.updateHabitData();
       Navigator.of(context).pop();
     });
   }
@@ -84,6 +106,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   //
+  // remove
+
+  void removeHabit(int index) {
+    setState(() {
+      print('remove habit $index');
+      db.HabitsList.removeAt(index);
+
+      db.updateHabitData();
+    });
+  }
+
+  //
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,11 +127,12 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Expanded(
               child: ListView.builder(
-                  itemCount: HabitsList.length,
+                  itemCount: db.HabitsList.length,
                   itemBuilder: (context, index) {
                     return HabitTile(
-                        text: HabitsList[index][0],
-                        habitCompleted: HabitsList[index][1],
+                        text: db.HabitsList[index][0],
+                        habitCompleted: db.HabitsList[index][1],
+                        onRemove: () => removeHabit(index),
                         onChanged: (value) => CheckboxTabbed(value, index));
                   }),
             ),
